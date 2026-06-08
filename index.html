@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Quản Trị - CMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .dropdown:hover .dropdown-menu { display: block; }
+        /* Đảm bảo input luôn hiển thị chữ rõ ràng */
+        input::placeholder { color: #9ca3af; }
+    </style>
+    <script src="js/auth.js"></script> 
+</head>
+<body class="bg-gray-100 min-h-screen font-sans text-gray-800">
+    <nav class="bg-indigo-700 text-white shadow-lg sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="flex justify-between items-center h-16">
+            
+            <div class="flex items-center space-x-8">
+                <div class="flex items-center bg-indigo-800 rounded-lg px-2 py-1.5 border border-indigo-500">
+                    <i class="fa-solid fa-layer-group text-yellow-400 mr-2 text-xl"></i>
+                    <select id="siteSelector" class="bg-transparent text-white text-xs font-bold focus:outline-none cursor-pointer">
+                        <option value="79king" class="text-gray-800">79KING</option>
+                        <option value="99ok" class="text-gray-800">99OK</option>
+                        <option value="okking" class="text-gray-800">OKKING</option>
+                        <option value="kl99" class="text-gray-800">KL99</option>
+                    </select>
+                </div>
+                
+                <div class="hidden md:flex space-x-1">
+                    <a href="/" class="px-3 py-2 rounded-md bg-indigo-800 transition">Tổng quan</a>
+                    <a href="/quan-ly-ma" class="px-3 py-2 rounded-md hover:bg-indigo-600 transition">Quản Lý Mã</a>
+                    <a href="/lich-su" class="px-3 py-2 rounded-md hover:bg-indigo-600 transition">Lịch Sử Nhập</a>
+                    <a href="/quan-ly-tai-khoan" class="px-3 py-2 rounded-md hover:bg-indigo-600 transition">Quản Lý Tài Khoản</a>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4 text-sm">
+                <span>Xin chào, <b id="adminNameDisplay" class="text-white">Admin</b></span>
+                <button onclick="Auth.logout()" class="text-indigo-200 hover:text-white transition">
+                    <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                </button>
+            </div>
+
+        </div>
+    </div>
+</nav>
+
+    <main class="max-w-7xl mx-auto px-4 py-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden group">
+            <div class="relative z-10">
+                <p class="text-gray-500 text-xs font-bold uppercase tracking-wider">Tổng kho mã quà</p>
+                <h3 class="text-3xl font-black mt-2 text-slate-800" id="stat-total-codes">0</h3>
+            </div>
+            <i class="fa-solid fa-database absolute -right-4 -bottom-4 text-6xl text-gray-50 group-hover:text-blue-50 transition-colors"></i>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden group">
+            <div class="relative z-10">
+                <p class="text-gray-500 text-xs font-bold uppercase tracking-wider">Mã sẵn sàng</p>
+                <h3 class="text-3xl font-black mt-2 text-green-600" id="stat-available-codes">0</h3>
+            </div>
+            <i class="fa-solid fa-ticket absolute -right-4 -bottom-4 text-6xl text-gray-50 group-hover:text-green-50 transition-colors"></i>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden group">
+            <div class="relative z-10">
+                <p class="text-gray-500 text-xs font-bold uppercase tracking-wider">Lượt đã phát</p>
+                <h3 class="text-3xl font-black mt-2 text-blue-600" id="stat-claimed-count">0</h3>
+            </div>
+            <i class="fa-solid fa-gift absolute -right-4 -bottom-4 text-6xl text-gray-50 group-hover:text-blue-50 transition-colors"></i>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden group">
+            <div class="relative z-10">
+                <p class="text-gray-500 text-xs font-bold uppercase tracking-wider">Hiệu suất phát</p>
+                <h3 class="text-3xl font-black mt-2 text-purple-600" id="stat-usage-rate">0%</h3>
+            </div>
+            <i class="fa-solid fa-chart-pie absolute -right-4 -bottom-4 text-6xl text-gray-50 group-hover:text-purple-50 transition-colors"></i>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-50 flex justify-between items-center">
+                    <h4 class="font-black uppercase text-sm tracking-widest text-slate-700">Lịch sử nhận mã gần đây</h4>
+                    <a href="lich-su.html" class="text-xs font-bold text-blue-600 hover:underline">XEM TẤT CẢ</a>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50/50 text-[10px] uppercase text-gray-400">
+                            <tr>
+                                <th class="px-6 py-4 font-bold">Hội viên</th>
+                                <th class="px-6 py-4 font-bold">Mã quà</th>
+                                <th class="px-6 py-4 font-bold text-right">Thời gian</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-history-table" class="divide-y divide-gray-50">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-1">
+            <div class="bg-slate-800 rounded-3xl p-8 text-white shadow-xl shadow-slate-200">
+                <h4 class="text-xs font-bold uppercase tracking-[0.2em] mb-6 text-slate-400">Trình trạng API</h4>
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between">
+    <span class="text-sm font-medium">Cloudflare Worker</span>
+    <span id="status-worker" class="flex items-center gap-2 text-xs font-bold text-gray-400">
+        <span class="w-2 h-2 bg-gray-400 rounded-full"></span> ĐANG KIỂM TRA...
+    </span>
+</div>
+<div class="flex items-center justify-between">
+    <span class="text-sm font-medium">Database D1</span>
+    <span id="status-db" class="text-xs font-bold text-gray-400">ĐANG KIỂM TRA...</span>
+</div>
+                    <hr class="border-slate-700">
+                    <div class="text-center py-4">
+                        <p class="text-[10px] text-slate-500 uppercase mb-2">Phiên bản hệ thống</p>
+                        <p class="text-xl font-black text-gold-500 italic">v.HAROLD PRO</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </main>
+
+    <footer class="text-center py-8 text-gray-400 text-xs border-t border-gray-200 mt-10">
+        &copy; 2026 99OK CODE System - Manager Harold
+    </footer>
+
+    <script src="js/index.js"></script>
+</body>
+</html>

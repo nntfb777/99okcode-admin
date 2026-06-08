@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Quản Trị - CMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .dropdown:hover .dropdown-menu { display: block; }
+        /* Đảm bảo input luôn hiển thị chữ rõ ràng */
+        input::placeholder { color: #9ca3af; }
+    </style>
+    <script src="js/auth.js"></script> 
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans text-gray-800">
+    <nav class="bg-indigo-700 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center space-x-8">
+                <div class="flex items-center bg-indigo-800 rounded-lg px-2 py-1.5 border border-indigo-500">
+                    <i class="fa-solid fa-layer-group text-yellow-400 mr-2 text-xl"></i>
+                    <select id="siteSelector" class="bg-transparent text-white text-xs font-bold focus:outline-none cursor-pointer">
+                        <option value="79king" class="text-gray-800">79KING</option>
+                        <option value="99ok" class="text-gray-800">99OK</option>
+                        <option value="okking" class="text-gray-800">OKKING</option>
+                        <option value="kl99" class="text-gray-800">KL99</option>
+                    </select>
+                </div>
+                    <div class="hidden md:flex space-x-1">
+                        <a href="/" class="px-3 py-2 rounded-md hover:bg-indigo-600 transition">Tổng quan</a>
+                        <a href="/quan-ly-ma" class="px-3 py-2 rounded-md hover:bg-indigo-600 transition">Quản Lý Mã</a>
+                        <a href="/lich-su" class="px-3 py-2 rounded-md bg-indigo-800 transition">Lịch Sử Nhập</a>
+                        <a href="/quan-ly-tai-khoan" class="px-3 py-2 rounded-md hover:bg-indigo-600 transition">Quản Lý Tài Khoản</a>
+
+                    </div>
+                </div>
+                <div class="flex items-center gap-4 text-sm">
+                    <span>Xin chào, <b id="adminNameDisplay" class="text-white">Admin</b></span>
+                    <button onclick="Auth.logout()"class="text-indigo-200 hover:text-white transition">
+                        <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <div class="flex items-center gap-4">
+            <h2 class="text-2xl font-black text-gray-800">LỊCH SỬ NHẬN MÃ</h2>
+            <button id="btnDeleteSelectedHistory" class="hidden bg-red-100 text-red-600 px-4 py-2 rounded-xl text-xs font-bold hover:bg-red-200 transition">
+                XÓA MỤC ĐÃ CHỌN
+            </button>
+            <button onclick="clearAllHistory()" class="bg-gray-100 text-gray-600 px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-200 transition">
+                DỌN TRỐNG LỊCH SỬ
+            </button>
+        </div>
+        <button onclick="downloadExcel()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-xl font-bold transition-all flex items-center gap-2">
+            <i class="fa-solid fa-file-excel"></i> Tải Excel (.csv)
+        </button>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-gray-50 border-b text-xs uppercase">
+                    <th class="p-4 w-10">
+                        <input type="checkbox" id="selectAllHistory" class="rounded border-gray-300 cursor-pointer">
+                    </th>
+                    <th class="p-4 font-bold text-gray-600">Hội viên</th>
+                    <th class="p-4 font-bold text-gray-600 text-center">Mã quà tặng</th>
+                    <th class="p-4 font-bold text-gray-600 text-right">Thời gian nhận</th>
+                    <th class="p-4 font-bold text-gray-600 text-right">IP</th>
+                    <th class="p-4 font-bold text-gray-600 text-right">User Agent</th>
+                    <th class="p-4 font-bold text-gray-600 text-right">CanvasFp</th>
+                </tr>
+            </thead>
+            <tbody id="historyTableBody"></tbody>
+        </table>
+    </div>
+</main>
+
+    <footer class="text-center py-8 text-gray-400 text-xs border-t border-gray-200 mt-10">
+        &copy; 2026 99OK CODE System - Manager Harold
+    </footer>
+
+    <script src="js/lich-su.js"></script>
+</body>
+</html>
