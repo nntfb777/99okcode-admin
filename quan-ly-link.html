@@ -1,37 +1,49 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quản Lý Link & Banner - 99ok Admin</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="js/auth.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Quản Trị - CMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .dropdown:hover .dropdown-menu { display: block; }
+        /* Đảm bảo input luôn hiển thị chữ rõ ràng */
+        input::placeholder { color: #9ca3af; }
+    </style>
+    <script src="js/auth.js"></script> 
+    
 </head>
 <body class="bg-gray-100 min-h-screen font-sans text-gray-800">
-
-  <!-- Thanh Navigation đồng bộ với lich-su.html -->
-  <nav class="bg-indigo-700 text-white shadow-lg sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4">
-      <div class="flex justify-between h-16">
-        <div class="flex items-center space-x-8">
-          <div class="flex items-center bg-indigo-800 rounded-lg px-3 py-1.5 border border-indigo-500">
-            <i class="fa-solid fa-link mr-2"></i>
-            <span class="font-bold text-lg">99OK LINK MANAGER</span>
-          </div>
-          <div class="hidden md:flex space-x-4">
-            <a href="admin.html" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-600">Trang Chủ</a>
-            <a href="quan-ly-link.html" class="px-3 py-2 rounded-md text-sm font-medium bg-indigo-800 text-white">Quản Lý Link</a>
-            <a href="lich-su.html" class="px-3 py-2 rounded-md text-sm font-medium hover:bg-indigo-600">Lịch Sử</a>
-          </div>
+    <nav class="bg-indigo-700 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center space-x-8">
+                <div class="flex items-center bg-indigo-800 rounded-lg px-2 py-1.5 border border-indigo-500">
+                    <i class="fa-solid fa-layer-group text-yellow-400 mr-2 text-xl"></i>
+                    <select id="siteSelector" class="bg-transparent text-white text-xs font-bold focus:outline-none cursor-pointer">
+                        <option value="79king" class="text-gray-800">79KING</option>
+                        <option value="99ok" class="text-gray-800">99OK</option>
+                        <option value="okking" class="text-gray-800">OKKING</option>
+                        <option value="kl99" class="text-gray-800">KL99</option>
+                    </select>
+                </div>
+                    <div class="hidden md:flex space-x-1">
+                        <a href="/" class="px-3 py-2 rounded-md hover:bg-indigo-600 transition">Tổng quan</a>
+                        <a href="/quan-ly-ma" class="px-3 py-2 rounded-md bg-indigo-800 transition">Quản Lý Mã</a>
+                        <a href="/lich-su" class="px-3 py-2 rounded-md hover:bg-indigo-600 transition">Lịch Sử Nhập</a>
+                        <a href="/quan-ly-tai-khoan" class="px-3 py-2 rounded-md hover:bg-indigo-600 transition">Quản Lý Tài Khoản</a>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4 text-sm">
+                    <span>Xin chào, <b id="adminNameDisplay" class="text-white">Admin</b></span>
+                    <button onclick="Auth.logout()"class="text-indigo-200 hover:text-white transition">
+                        <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                    </button>
+                </div>
+            </div>
         </div>
-        <div class="flex items-center space-x-4">
-          <span id="adminNameDisplay" class="text-sm font-medium">Admin</span>
-          <button onclick="Auth.logout()" class="text-xs bg-red-500 hover:bg-red-600 px-3 py-1.5 rounded transition">Đăng xuất</button>
-        </div>
-      </div>
-    </div>
-  </nav>
+    </nav>
 
   <div class="max-w-7xl mx-auto px-4 py-8">
     <div class="flex justify-between items-center mb-6">
