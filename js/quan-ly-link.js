@@ -128,3 +128,46 @@ function updateMasterCount() {
   const count = rawText.split('\n').map(u => u.trim()).filter(u => u.length > 0).length;
   document.getElementById('masterCount').innerText = `Tổng số: ${count} links`;
 }
+
+// Thêm vào hàm loadAllLinks() để tự động điền các link Social đã lưu
+function fillSocialLinks(data) {
+  const fb = data.find(i => i.key_name === 'facebookUrl');
+  const tg = data.find(i => i.key_name === 'telegramUrl');
+  const daily = data.find(i => i.key_name === 'dailyTelegramUrl');
+  const agent = data.find(i => i.key_name === 'agentLoginUrl');
+  const code = data.find(i => i.key_name === 'giftcodeUrl');
+
+  if (fb) document.getElementById('facebookUrl').value = fb.value;
+  if (tg) document.getElementById('telegramUrl').value = tg.value;
+  if (daily) document.getElementById('dailyTelegramUrl').value = daily.value;
+  if (agent) document.getElementById('agentLoginUrl').value = agent.value;
+  if (code) document.getElementById('giftcodeUrl').value = code.value;
+}
+
+// Hàm lưu toàn bộ Social Links
+async function saveSocialLinks(e) {
+  e.preventDefault();
+  const siteId = (typeof Auth !== 'undefined' && Auth.getActiveSite) ? Auth.getActiveSite() : '99ok';
+
+  const socialItems = [
+    { category: 'social_link', key_name: 'facebookUrl', title: 'Fanpage Facebook', value: document.getElementById('facebookUrl').value.trim() },
+    { category: 'social_link', key_name: 'telegramUrl', title: 'Kênh Telegram', value: document.getElementById('telegramUrl').value.trim() },
+    { category: 'social_link', key_name: 'dailyTelegramUrl', title: 'Telegram Đại Lý', value: document.getElementById('dailyTelegramUrl').value.trim() },
+    { category: 'social_link', key_name: 'agentLoginUrl', title: 'Đăng Nhập Đại Lý', value: document.getElementById('agentLoginUrl').value.trim() },
+    { category: 'social_link', key_name: 'giftcodeUrl', title: 'Link Nhập Giftcode', value: document.getElementById('giftcodeUrl').value.trim() }
+  ];
+
+  try {
+    for (const item of socialItems) {
+      if (!item.value) continue; // Bỏ qua nếu dòng trống
+      await fetch(`${API_URL}/api/admin/links/save`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ ...item, site_id: siteId, is_active: 1 })
+      });
+    }
+    alert(' Cập nhật Link Mạng Xã Hội thành công!');
+  } catch (err) {
+    alert('Lỗi lưu Link Mạng Xã Hội: ' + err.message);
+  }
+}
