@@ -171,3 +171,69 @@ async function saveSocialLinks(e) {
     alert('Lỗi lưu Link Mạng Xã Hội: ' + err.message);
   }
 }
+
+
+// Thêm vào hàm loadAllLinks() để nạp danh sách Banner
+function fillBannerLinks(data) {
+  const banners = data.filter(i => i.category === 'banner_image').map(i => i.value);
+  const bannerInput = document.getElementById('bannerUrlsInput');
+  if (bannerInput) {
+    bannerInput.value = banners.join('\n');
+    updateBannerCount();
+  }
+}
+
+// Hàm lưu danh sách Banner
+async function saveBanners(e) {
+  e.preventDefault();
+  const siteId = (typeof Auth !== 'undefined' && Auth.getActiveSite) ? Auth.getActiveSite() : '99ok';
+  
+  const rawText = document.getElementById('bannerUrlsInput').value;
+  const bannerList = rawText.split('\n').map(u => u.trim()).filter(u => u.length > 0);
+
+  if (bannerList.length === 0) {
+    alert('Vui lòng nhập ít nhất 1 link hình ảnh banner.');
+    return;
+  }
+
+  try {
+    for (let i = 0; i < bannerList.length; i++) {
+      const payload = {
+        site_id: siteId,
+        category: 'banner_image',
+        key_name: `banner_slide_${i + 1}`,
+        title: `Banner Slide ${i + 1}`,
+        value: bannerList[i],
+        sort_order: i + 1,
+        is_active: 1
+      };
+
+      await fetch(`${API_URL}/api/admin/links/save`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(payload)
+      });
+    }
+
+    alert(` Cập nhật thành công ${bannerList.length} ảnh Banner Carousel!`);
+    loadAllLinks();
+  } catch (err) {
+    alert('Lỗi lưu danh sách Banner: ' + err.message);
+  }
+}
+
+// Đếm số dòng ảnh Banner
+function updateBannerCount() {
+  const rawText = document.getElementById('bannerUrlsInput').value;
+  const count = rawText.split('\n').map(u => u.trim()).filter(u => u.length > 0).length;
+  const countEl = document.getElementById('bannerCount');
+  if (countEl) countEl.innerText = `Tổng số: ${count} ảnh`;
+}
+
+// Đăng ký sự kiện đếm khi nhập
+document.addEventListener('DOMContentLoaded', () => {
+  const bannerInput = document.getElementById('bannerUrlsInput');
+  if (bannerInput) {
+    bannerInput.addEventListener('input', updateBannerCount);
+  }
+});
