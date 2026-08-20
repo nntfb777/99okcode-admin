@@ -32,13 +32,13 @@ async function loadAllLinks() {
     const res = await fetch(`${API_URL}/api/admin/links/list?site_id=${siteId}`, {
       headers: getAuthHeaders()
     });
-    
+
     const result = await res.json();
     if (!result.success) throw new Error(result.error || 'Lỗi tải dữ liệu');
 
     const data = result.data || [];
 
-    // Điền link hệ thống
+    // 1. Điền link hệ thống cố định
     const kefu = data.find(i => i.key_name === 'kefuUrl');
     const apk = data.find(i => i.key_name === 'apkAppUrl');
     const pc = data.find(i => i.key_name === 'pcUrl');
@@ -47,10 +47,16 @@ async function loadAllLinks() {
     if (apk) document.getElementById('apkAppUrl').value = apk.value;
     if (pc) document.getElementById('pcUrl').value = pc.value;
 
-    // Điền masterUrls (mỗi link 1 dòng)
+    // 2. Điền masterUrls (mỗi link 1 dòng)
     const masterLinks = data.filter(i => i.category === 'ping_link').map(i => i.value);
     document.getElementById('masterUrlsInput').value = masterLinks.join('\n');
     updateMasterCount();
+
+    // 3. BỔ SUNG: Điền Link Mạng Xã Hội
+    fillSocialLinks(data);
+
+    // 4. BỔ SUNG: Điền Danh sách Banner Carousel
+    fillBannerLinks(data);
 
   } catch (err) {
     alert('Lỗi nạp danh sách link: ' + err.message);
