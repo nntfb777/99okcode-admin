@@ -12,6 +12,12 @@ document.addEventListener('DOMContentLoaded', () => {
   if (masterInput) {
     masterInput.addEventListener('input', updateMasterCount);
   }
+
+  // Đếm số dòng banner khi gõ
+  const bannerInput = document.getElementById('bannerUrlsInput');
+  if (bannerInput) {
+    bannerInput.addEventListener('input', updateBannerCount);
+  }
 });
 
 // Lấy Header xác thực
@@ -52,10 +58,10 @@ async function loadAllLinks() {
     document.getElementById('masterUrlsInput').value = masterLinks.join('\n');
     updateMasterCount();
 
-    // 3. BỔ SUNG: Điền Link Mạng Xã Hội
+    // 3. Điền Link Mạng Xã Hội
     fillSocialLinks(data);
 
-    // 4. BỔ SUNG: Điền Danh sách Banner Carousel
+    // 4. Điền Danh sách Banner Carousel
     fillBannerLinks(data);
 
   } catch (err) {
@@ -65,7 +71,7 @@ async function loadAllLinks() {
 
 // 2. LƯU LINK HỆ THỐNG CỐ ĐỊNH (kefuUrl, apkAppUrl, pcUrl)
 async function saveSystemLinks(e) {
-  e.preventDefault();
+  if (e) e.preventDefault();
   const siteId = (typeof Auth !== 'undefined' && Auth.getActiveSite) ? Auth.getActiveSite() : '99ok';
 
   const systemItems = [
@@ -82,27 +88,40 @@ async function saveSystemLinks(e) {
         body: JSON.stringify({ ...item, site_id: siteId, is_active: 1 })
       });
     }
-    alert(' Đã lưu các Link hệ thống thành công!');
+    alert('Đã lưu các Link hệ thống thành công!');
   } catch (err) {
     alert('Lỗi lưu link hệ thống: ' + err.message);
   }
 }
 
-// 3. LƯU DANH SÁCH MASTER URLS (NHIỀU DÒNG)
+// 3. LƯU DANH SÁCH MASTER URLS (TỰ ĐỘNG XÓA CÁC KEY THỪA KHI BỚT DÒNG)
 async function saveMasterUrls(e) {
-  e.preventDefault();
+  if (e) e.preventDefault();
   const siteId = (typeof Auth !== 'undefined' && Auth.getActiveSite) ? Auth.getActiveSite() : '99ok';
   
   const rawText = document.getElementById('masterUrlsInput').value;
-  // Bóc tách mảng đường dẫn theo từng dòng và lọc bỏ dòng trống
   const urlList = rawText.split('\n').map(u => u.trim()).filter(u => u.length > 0);
 
-  if (urlList.length === 0) {
-    alert('Vui lòng nhập ít nhất 1 đường dẫn URL.');
-    return;
-  }
-
   try {
+    // 1. Tải danh sách ping_link hiện tại trên Database để kiểm tra số lượng cũ
+    const res = await fetch(`${API_URL}/api/admin/links/list?site_id=${siteId}`, {
+      headers: getAuthHeaders()
+    });
+    const result = await res.json();
+    const existingMasterLinks = (result.data || []).filter(i => i.category === 'ping_link');
+
+    // 2. Nếu số lượng dòng mới nhỏ hơn cũ -> Xóa bớt các key dư thừa cuối danh sách
+    if (existingMasterLinks.length > urlList.length) {
+      for (let i = urlList.length; i < existingMasterLinks.length; i++) {
+        const keyToDelete = existingMasterLinks[i].key_name || `master_url_${i + 1}`;
+        await fetch(`${API_URL}/api/admin/links/delete?key_name=${keyToDelete}&site_id=${siteId}`, {
+          method: 'DELETE',
+          headers: getAuthHeaders()
+        });
+      }
+    }
+
+    // 3. Lưu lại danh sách đường dẫn mới
     for (let i = 0; i < urlList.length; i++) {
       const payload = {
         site_id: siteId,
@@ -121,7 +140,7 @@ async function saveMasterUrls(e) {
       });
     }
 
-    alert(` Cập nhật thành công ${urlList.length} Master URLs!`);
+    alert(`Cập nhật thành công ${urlList.length} Master URLs!`);
     loadAllLinks();
   } catch (err) {
     alert('Lỗi lưu danh sách Master URLs: ' + err.message);
@@ -132,10 +151,11 @@ async function saveMasterUrls(e) {
 function updateMasterCount() {
   const rawText = document.getElementById('masterUrlsInput').value;
   const count = rawText.split('\n').map(u => u.trim()).filter(u => u.length > 0).length;
-  document.getElementById('masterCount').innerText = `Tổng số: ${count} links`;
+  const countEl = document.getElementById('masterCount');
+  if (countEl) countEl.innerText = `Tổng số: ${count} links`;
 }
 
-// Thêm vào hàm loadAllLinks() để tự động điền các link Social đã lưu
+// 4. ĐIỀN LINK MẠNG XÃ HỘI
 function fillSocialLinks(data) {
   const fb = data.find(i => i.key_name === 'facebookUrl');
   const tg = data.find(i => i.key_name === 'telegramUrl');
@@ -150,9 +170,9 @@ function fillSocialLinks(data) {
   if (code) document.getElementById('giftcodeUrl').value = code.value;
 }
 
-// Hàm lưu toàn bộ Social Links
+// LƯU TOÀN BỘ SOCIAL LINKS
 async function saveSocialLinks(e) {
-  e.preventDefault();
+  if (e) e.preventDefault();
   const siteId = (typeof Auth !== 'undefined' && Auth.getActiveSite) ? Auth.getActiveSite() : '99ok';
 
   const socialItems = [
@@ -172,14 +192,13 @@ async function saveSocialLinks(e) {
         body: JSON.stringify({ ...item, site_id: siteId, is_active: 1 })
       });
     }
-    alert(' Cập nhật Link Mạng Xã Hội thành công!');
+    alert('Cập nhật Link Mạng Xã Hội thành công!');
   } catch (err) {
     alert('Lỗi lưu Link Mạng Xã Hội: ' + err.message);
   }
 }
 
-
-// Thêm vào hàm loadAllLinks() để nạp danh sách Banner
+// 5. ĐIỀN BANNER CAROUSEL
 function fillBannerLinks(data) {
   const banners = data.filter(i => i.category === 'banner_image').map(i => i.value);
   const bannerInput = document.getElementById('bannerUrlsInput');
@@ -189,20 +208,34 @@ function fillBannerLinks(data) {
   }
 }
 
-// Hàm lưu danh sách Banner
+// LƯU DANH SÁCH BANNER (TỰ ĐỘNG XÓA CÁC BANNER THỪA KHI BỚT DÒNG)
 async function saveBanners(e) {
-  e.preventDefault();
+  if (e) e.preventDefault();
   const siteId = (typeof Auth !== 'undefined' && Auth.getActiveSite) ? Auth.getActiveSite() : '99ok';
   
   const rawText = document.getElementById('bannerUrlsInput').value;
   const bannerList = rawText.split('\n').map(u => u.trim()).filter(u => u.length > 0);
 
-  if (bannerList.length === 0) {
-    alert('Vui lòng nhập ít nhất 1 link hình ảnh banner.');
-    return;
-  }
-
   try {
+    // 1. Tải danh sách banner_image hiện tại trên Database để kiểm tra
+    const res = await fetch(`${API_URL}/api/admin/links/list?site_id=${siteId}`, {
+      headers: getAuthHeaders()
+    });
+    const result = await res.json();
+    const existingBanners = (result.data || []).filter(i => i.category === 'banner_image');
+
+    // 2. Nếu số lượng hình mới nhỏ hơn cũ -> Xóa bớt các key dư thừa cuối danh sách
+    if (existingBanners.length > bannerList.length) {
+      for (let i = bannerList.length; i < existingBanners.length; i++) {
+        const keyToDelete = existingBanners[i].key_name || `banner_slide_${i + 1}`;
+        await fetch(`${API_URL}/api/admin/links/delete?key_name=${keyToDelete}&site_id=${siteId}`, {
+          method: 'DELETE',
+          headers: getAuthHeaders()
+        });
+      }
+    }
+
+    // 3. Lưu lại danh sách ảnh mới
     for (let i = 0; i < bannerList.length; i++) {
       const payload = {
         site_id: siteId,
@@ -221,7 +254,7 @@ async function saveBanners(e) {
       });
     }
 
-    alert(` Cập nhật thành công ${bannerList.length} ảnh Banner Carousel!`);
+    alert(`Cập nhật thành công ${bannerList.length} ảnh Banner Carousel!`);
     loadAllLinks();
   } catch (err) {
     alert('Lỗi lưu danh sách Banner: ' + err.message);
@@ -235,11 +268,3 @@ function updateBannerCount() {
   const countEl = document.getElementById('bannerCount');
   if (countEl) countEl.innerText = `Tổng số: ${count} ảnh`;
 }
-
-// Đăng ký sự kiện đếm khi nhập
-document.addEventListener('DOMContentLoaded', () => {
-  const bannerInput = document.getElementById('bannerUrlsInput');
-  if (bannerInput) {
-    bannerInput.addEventListener('input', updateBannerCount);
-  }
-});
