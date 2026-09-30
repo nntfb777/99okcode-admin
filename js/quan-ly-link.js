@@ -82,7 +82,7 @@ async function saveSystemLinks(e) {
 
   try {
     for (const item of systemItems) {
-      await fetch(`${API_URL}/api/admin/links/save`, {
+      await fetch(`${API_URL}/api/admin/links`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({ ...item, site_id: siteId, is_active: 1 })
