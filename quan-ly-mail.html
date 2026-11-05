@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="favicon.ico">
+    <title>Hệ Thống Quản Trị 79Group - Hộp Thư Nhận Mail</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="js/auth.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans text-gray-800">
+    <!-- Navbar giữ nguyên như các trang khác -->
+    <nav class="bg-indigo-700 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center space-x-8">
+                    <div class="flex items-center bg-indigo-800 rounded-lg px-2 py-1.5 border border-indigo-500">
+                        <i class="fa-solid fa-layer-group text-yellow-400 mr-2 text-xl"></i>
+                        <select id="siteSelector" class="bg-transparent text-white text-xs font-bold focus:outline-none cursor-pointer">
+                            <option value="79king" class="text-gray-800">79KING</option>
+                            <option value="99ok" class="text-gray-800">99OK</option>
+                            <option value="okking" class="text-gray-800">OKKING</option>
+                            <option value="kl99" class="text-gray-800">KL99</option>
+                        </select>
+                    </div>
+                    <div class="hidden md:flex space-x-1">
+                        <a href="/" class="px-3 py-2 rounded-md hover:bg-indigo-600 transition">Tổng quan</a>
+                        <a href="/quan-ly-ma" class="px-3 py-2 rounded-md hover:bg-indigo-600 transition">Quản Lý Mã</a>
+                        <a href="/lich-su" class="px-3 py-2 rounded-md hover:bg-indigo-600 transition">Lịch Sử Nhập</a>
+                        <a href="/quan-ly-tai-khoan" class="px-3 py-2 rounded-md hover:bg-indigo-600 transition">Quản Lý Tài Khoản</a>
+                        <a href="/quan-ly-link" class="px-3 py-2 rounded-md hover:bg-indigo-600 transition">Link Tổng Hợp</a>
+                        <a href="/quan-ly-mail" class="px-3 py-2 rounded-md bg-indigo-800 transition">Hộp Thư Nhận Mail</a>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4 text-sm">
+                    <span>Xin chào, <b id="adminNameDisplay" class="text-white">Admin</b></span>
+                    <button onclick="Auth.logout()" class="text-indigo-200 hover:text-white transition">
+                        <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                <i class="fa-solid fa-inbox text-indigo-600"></i> Hộp Thư Nhận Mail & Mã Xác Nhận
+            </h1>
+            <button onclick="loadEmails()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2">
+                <i class="fa-solid fa-rotate"></i> Làm Mới Hộp Thư
+            </button>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="text-xs uppercase text-gray-500 bg-gray-50 border-b">
+                            <th class="px-6 py-4 font-bold">Người gửi</th>
+                            <th class="px-6 py-4 font-bold">Đến địa chỉ</th>
+                            <th class="px-6 py-4 font-bold">Tiêu đề thư</th>
+                            <th class="px-6 py-4 font-bold text-right">Thời gian nhận</th>
+                            <th class="px-6 py-4 font-bold text-center">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="emailTableBody" class="text-sm text-gray-700">
+                        <tr>
+                            <td colspan="5" class="text-center py-10 text-gray-400 italic">Đang tải danh sách email...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Xem Nội Dung Chi Tiết Email -->
+    <div id="emailModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative">
+            <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b flex justify-between items-center">
+                <span id="modalSubject">Chi Tiết Email</span>
+                <button onclick="closeEmailModal()" class="text-gray-400 hover:text-gray-600 text-xl font-bold">×</button>
+            </h3>
+            <div class="space-y-3 mb-6 text-sm">
+                <p><strong>Từ:</strong> <span id="modalSender" class="text-gray-600"></span></p>
+                <p><strong>Đến:</strong> <span id="modalRecipient" class="text-gray-600"></span></p>
+                <p><strong>Thời gian:</strong> <span id="modalTime" class="text-gray-600"></span></p>
+                <hr>
+                <div class="bg-gray-50 p-4 rounded-xl border text-gray-800 font-mono text-xs whitespace-pre-wrap max-h-96 overflow-y-auto" id="modalBody"></div>
+            </div>
+            <div class="text-right">
+                <button onclick="closeEmailModal()" class="bg-indigo-600 text-white px-5 py-2 rounded-xl text-xs font-bold hover:bg-indigo-700 transition">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center py-8 text-gray-400 text-xs border-t border-gray-200 mt-10">
+        © 2026 99OK CODE System - Manager Harold
+    </footer>
+
+    <script src="js/quan-ly-mail.js"></script>
+</body>
+</html>
