@@ -10,7 +10,7 @@
     <script src="js/auth.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen font-sans text-gray-800">
-    <!-- Navbar giữ nguyên như các trang khác -->
+    <!-- Navbar -->
     <nav class="bg-indigo-700 text-white shadow-lg sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4">
             <div class="flex justify-between h-16 items-center">
@@ -76,7 +76,7 @@
         </div>
     </main>
 
-    <!-- Modal Xem Nội Dung Chi Tiết Email -->
+    <!-- Modal Xem Nội Dung Chi Tiết Email (Cách ly bằng iframe) -->
     <div id="emailModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-2xl max-w-4xl w-full p-6 shadow-2xl relative flex flex-col h-[85vh]">
             <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b flex justify-between items-center">
@@ -88,9 +88,9 @@
                 <p><strong>Đến:</strong> <span id="modalRecipient" class="text-gray-600"></span></p>
                 <p><strong>Thời gian:</strong> <span id="modalTime" class="text-gray-600"></span></p>
             </div>
-        
-            <!-- KHUNG HIỂN THỊ NỘI DUNG CHUẨN GMAIL (DÙNG IFRAME) -->
-           <div class="flex-grow border rounded-xl overflow-hidden bg-white mb-4 shadow-inner" style="min-height: 400px;">
+            
+            <!-- Khung iframe hiển thị nội dung email độc lập chuẩn Gmail -->
+            <div class="flex-grow border rounded-xl overflow-hidden bg-white mb-4 shadow-inner" style="min-height: 400px;">
                 <iframe id="modalEmailFrame" class="w-full h-full border-0" sandbox="allow-same-origin"></iframe>
             </div>
 

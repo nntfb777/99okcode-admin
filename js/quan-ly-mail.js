@@ -33,7 +33,7 @@ async function loadEmails() {
         if (result.success && result.emails && result.emails.length > 0) {
             globalEmails = result.emails;
 
-            // BẢNG CHÍNH CHỈ HIỂN THỊ CÁC TRƯỜNG CƠ BẢN, TUYỆT ĐỐI KHÔNG RENDER BODY RA NGOÀI
+            // BẢNG CHÍNH CHỈ HIỆN THÔNG TIN GỌN GÀNG, KHÔNG RENDER BODY
             tbody.innerHTML = globalEmails.map((mail, index) => `
                 <tr class="hover:bg-gray-50 transition border-b">
                     <td class="px-6 py-4 font-semibold text-slate-700">${escapeHtml(mail.sender)}</td>
@@ -41,11 +41,11 @@ async function loadEmails() {
                     <td class="px-6 py-4 font-bold text-gray-800">${escapeHtml(mail.subject)}</td>
                     <td class="px-6 py-4 text-right text-xs text-gray-400">${mail.received_at}</td>
                     <td class="px-6 py-4 text-center space-x-2">
-                        <button onclick='viewEmailDetailByIndex(${index})' class="bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-100 transition">
+                        <button onclick="viewEmailDetailByIndex(${index})" class="bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-100 transition">
                             <i class="fa-solid fa-eye mr-1"></i> Xem
                         </button>
-                        <button onclick='deleteEmail(${mail.id})' class="bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-red-100 transition">
-                            <i class="fa-solid src-trash mr-1"></i> Xóa
+                        <button onclick="deleteEmail(${mail.id})" class="bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-red-100 transition">
+                            <i class="fa-solid fa-trash mr-1"></i> Xóa
                         </button>
                     </td>
                 </tr>
@@ -59,8 +59,7 @@ async function loadEmails() {
     }
 }
 
-// Hiển thị nội dung HTML qua thẻ iframe trong Modal giúp giao diện chuẩn form như Gmail
-// Thay vì dùng doc.write, ta dùng thuộc tính srcdoc của iframe để cách ly tuyệt đối HTML của email
+// Hiển thị nội dung HTML qua thẻ iframe srcdoc để cách ly tuyệt đối, chuẩn form Gmail
 function viewEmailDetailByIndex(index) {
     const mail = globalEmails[index];
     if (!mail) return;
@@ -70,11 +69,8 @@ function viewEmailDetailByIndex(index) {
     document.getElementById('modalSubject').innerText = mail.subject;
     document.getElementById('modalTime').innerText = mail.received_at;
     
-    // Lấy iframe ra và gán trực tiếp nội dung email vào thuộc tính srcdoc
     const iframe = document.getElementById('modalEmailFrame');
     if (iframe) {
-        // srcdoc giúp trình duyệt coi đây là một trang web độc lập bên trong iframe
-        // Hoàn toàn không dính dáng gì đến CSS hay cấu trúc của trang adm.79king.ai
         iframe.srcdoc = mail.body || "<p style='color:gray; text-align:center; font-family:sans-serif;'>Không có nội dung hiển thị</p>";
     }
 
@@ -108,8 +104,13 @@ async function deleteEmail(id, isFromModal = false) {
     }
 }
 
-// Hàm phụ trợ chống XSS cơ bản cho bảng
+// Hàm chống XSS chuẩn cú pháp
 function escapeHtml(text) {
     if (!text) return '';
-    return text.replace(/&/g, "&").replace(/</g, "<").replace(/>/g, ">").replace(/"/g, """).replace(/'/g, "'");
+    return text
+        .replace(/&/g, "&")
+        .replace(/</g, "<")
+        .replace(/>/g, ">")
+        .replace(/"/g, """)
+        .replace(/'/g, "'");
 }
