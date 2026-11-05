@@ -1,3 +1,5 @@
+let globalEmails = [];
+
 document.addEventListener('DOMContentLoaded', () => {
     const adminName = localStorage.getItem('admin_name') || 'Admin';
     const adminDisplay = document.getElementById('adminNameDisplay');
@@ -29,18 +31,21 @@ async function loadEmails() {
         const result = await res.json();
 
         if (result.success && result.emails && result.emails.length > 0) {
-            tbody.innerHTML = result.emails.map(mail => `
+            globalEmails = result.emails;
+
+            // BẢNG CHÍNH CHỈ HIỂN THỊ CÁC TRƯỜNG CƠ BẢN, TUYỆT ĐỐI KHÔNG RENDER BODY RA NGOÀI
+            tbody.innerHTML = globalEmails.map((mail, index) => `
                 <tr class="hover:bg-gray-50 transition border-b">
-                    <td class="px-6 py-4 font-semibold text-slate-700">${mail.sender}</td>
-                    <td class="px-6 py-4 text-indigo-600 font-medium">${mail.recipient}</td>
-                    <td class="px-6 py-4 font-bold text-gray-800">${mail.subject}</td>
+                    <td class="px-6 py-4 font-semibold text-slate-700">${escapeHtml(mail.sender)}</td>
+                    <td class="px-6 py-4 text-indigo-600 font-medium">${escapeHtml(mail.recipient)}</td>
+                    <td class="px-6 py-4 font-bold text-gray-800">${escapeHtml(mail.subject)}</td>
                     <td class="px-6 py-4 text-right text-xs text-gray-400">${mail.received_at}</td>
                     <td class="px-6 py-4 text-center space-x-2">
-                        <button onclick='viewEmailDetail(${JSON.stringify(mail)})' class="bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-100 transition">
+                        <button onclick='viewEmailDetailByIndex(${index})' class="bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-100 transition">
                             <i class="fa-solid fa-eye mr-1"></i> Xem
                         </button>
                         <button onclick='deleteEmail(${mail.id})' class="bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-red-100 transition">
-                            <i class="fa-solid fa-trash mr-1"></i> Xóa
+                            <i class="fa-solid src-trash mr-1"></i> Xóa
                         </button>
                     </td>
                 </tr>
@@ -54,19 +59,24 @@ async function loadEmails() {
     }
 }
 
-function viewEmailDetail(mail) {
+// Hiển thị nội dung HTML qua thẻ iframe trong Modal giúp giao diện chuẩn form như Gmail
+function viewEmailDetailByIndex(index) {
+    const mail = globalEmails[index];
+    if (!mail) return;
+
     document.getElementById('modalSender').innerText = mail.sender;
     document.getElementById('modalRecipient').innerText = mail.recipient;
     document.getElementById('modalSubject').innerText = mail.subject;
     document.getElementById('modalTime').innerText = mail.received_at;
     
-    // Xử lý hiển thị nội dung (lọc HTML thô hoặc lấy text trực tiếp)
-    let bodyContent = mail.body || "Không có nội dung hiển thị";
-    document.getElementById('modalBody').innerText = bodyContent;
-    
-    // Gán ID cho nút xóa bên trong modal để khi bấm sẽ xóa đúng thư này và đóng modal
+    // Sử dụng iframe sandbox để render HTML an toàn và đẹp mắt như Gmail
+    const iframe = document.getElementById('modalEmailFrame');
+    const doc = iframe.contentDocument || iframe.contentWindow.document;
+    doc.open();
+    doc.write(mail.body || "<p style='color:gray; text-align:center;'>Không có nội dung hiển thị</p>");
+    doc.close();
+
     document.getElementById('modalDeleteBtn').setAttribute('onclick', `deleteEmail(${mail.id}, true)`);
-    
     document.getElementById('emailModal').classList.remove('hidden');
 }
 
@@ -74,7 +84,6 @@ function closeEmailModal() {
     document.getElementById('emailModal').classList.add('hidden');
 }
 
-// HÀM XÓA EMAIL
 async function deleteEmail(id, isFromModal = false) {
     if (!confirm("Sếp có chắc chắn muốn xóa email này không?")) return;
 
@@ -86,15 +95,19 @@ async function deleteEmail(id, isFromModal = false) {
         const result = await res.json();
 
         if (result.success) {
-            if (isFromModal) {
-                closeEmailModal();
-            }
-            loadEmails(); // Tải lại danh sách sau khi xóa
+            if (isFromModal) closeEmailModal();
+            loadEmails();
         } else {
             alert("Lỗi khi xóa: " + result.message);
         }
     } catch (err) {
-        console.error("Lỗi kết nối khi xóa email:", err);
+        console.error("Lỗi kết nối khi xóa:", err);
         alert("Không thể kết nối đến máy chủ để xóa!");
     }
+}
+
+// Hàm phụ trợ chống XSS cơ bản cho bảng
+function escapeHtml(text) {
+    if (!text) return '';
+    return text.replace(/&/g, "&").replace(/</g, "<").replace(/>/g, ">").replace(/"/g, """).replace(/'/g, "'");
 }

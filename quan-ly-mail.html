@@ -78,21 +78,23 @@
 
     <!-- Modal Xem Nội Dung Chi Tiết Email -->
     <div id="emailModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative">
+        <div class="bg-white rounded-2xl max-w-4xl w-full p-6 shadow-2xl relative flex flex-col h-[85vh]">
             <h3 class="text-lg font-bold text-gray-800 mb-4 pb-2 border-b flex justify-between items-center">
                 <span id="modalSubject">Chi Tiết Email</span>
                 <button onclick="closeEmailModal()" class="text-gray-400 hover:text-gray-600 text-xl font-bold">×</button>
             </h3>
-            <div class="space-y-3 mb-6 text-sm">
+            <div class="space-y-2 mb-4 text-sm flex-shrink-0">
                 <p><strong>Từ:</strong> <span id="modalSender" class="text-gray-600"></span></p>
                 <p><strong>Đến:</strong> <span id="modalRecipient" class="text-gray-600"></span></p>
                 <p><strong>Thời gian:</strong> <span id="modalTime" class="text-gray-600"></span></p>
-                <hr>
-                <div class="bg-gray-50 p-4 rounded-xl border text-gray-800 font-mono text-xs whitespace-pre-wrap max-h-96 overflow-y-auto" id="modalBody"></div>
             </div>
-            
-            <!-- THANH NÚT BẤM DƯỚI MODAL (Đã thêm nút Xóa Thư Này) -->
-            <div class="flex justify-between items-center pt-3 border-t">
+        
+            <!-- KHUNG HIỂN THỊ NỘI DUNG CHUẨN GMAIL (DÙNG IFRAME) -->
+           <div class="flex-grow border rounded-xl overflow-hidden bg-gray-50 mb-4">
+                <iframe id="modalEmailFrame" class="w-full h-full bg-white border-0" sandbox="allow-same-origin"></iframe>
+            </div>
+
+            <div class="flex justify-between items-center pt-3 border-t flex-shrink-0">
                 <button id="modalDeleteBtn" onclick="" class="bg-red-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-red-700 transition">
                     <i class="fa-solid fa-trash mr-1"></i> Xóa Thư Này
                 </button>
