@@ -60,6 +60,7 @@ async function loadEmails() {
 }
 
 // Hiển thị nội dung HTML qua thẻ iframe trong Modal giúp giao diện chuẩn form như Gmail
+// Thay vì dùng doc.write, ta dùng thuộc tính srcdoc của iframe để cách ly tuyệt đối HTML của email
 function viewEmailDetailByIndex(index) {
     const mail = globalEmails[index];
     if (!mail) return;
@@ -69,12 +70,13 @@ function viewEmailDetailByIndex(index) {
     document.getElementById('modalSubject').innerText = mail.subject;
     document.getElementById('modalTime').innerText = mail.received_at;
     
-    // Sử dụng iframe sandbox để render HTML an toàn và đẹp mắt như Gmail
+    // Lấy iframe ra và gán trực tiếp nội dung email vào thuộc tính srcdoc
     const iframe = document.getElementById('modalEmailFrame');
-    const doc = iframe.contentDocument || iframe.contentWindow.document;
-    doc.open();
-    doc.write(mail.body || "<p style='color:gray; text-align:center;'>Không có nội dung hiển thị</p>");
-    doc.close();
+    if (iframe) {
+        // srcdoc giúp trình duyệt coi đây là một trang web độc lập bên trong iframe
+        // Hoàn toàn không dính dáng gì đến CSS hay cấu trúc của trang adm.79king.ai
+        iframe.srcdoc = mail.body || "<p style='color:gray; text-align:center; font-family:sans-serif;'>Không có nội dung hiển thị</p>";
+    }
 
     document.getElementById('modalDeleteBtn').setAttribute('onclick', `deleteEmail(${mail.id}, true)`);
     document.getElementById('emailModal').classList.remove('hidden');
