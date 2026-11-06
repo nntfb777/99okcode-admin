@@ -33,7 +33,6 @@ async function loadEmails() {
         if (result.success && result.emails && result.emails.length > 0) {
             globalEmails = result.emails;
 
-            // BẢNG CHÍNH CHỈ HIỆN THÔNG TIN GỌN GÀNG, KHÔNG RENDER BODY
             tbody.innerHTML = globalEmails.map((mail, index) => `
                 <tr class="hover:bg-gray-50 transition border-b">
                     <td class="px-6 py-4 font-semibold text-slate-700">${escapeHtml(mail.sender)}</td>
@@ -59,7 +58,6 @@ async function loadEmails() {
     }
 }
 
-// Hiển thị nội dung HTML qua thẻ iframe srcdoc để cách ly tuyệt đối, chuẩn form Gmail
 function viewEmailDetailByIndex(index) {
     const mail = globalEmails[index];
     if (!mail) return;
@@ -71,8 +69,8 @@ function viewEmailDetailByIndex(index) {
     
     const iframe = document.getElementById('modalEmailFrame');
     if (iframe) {
-        iframe.srcdoc = mail.body || "<p style='color:gray; text-align:center; font-family:sans-serif;'>Không có nội dung hiển thị</p>";
-    }
+        iframe.srcdoc = mail.body || `<p style="color:gray; text-align:center; font-family:sans-serif;">Không có nội dung hiển thị</p>`;
+    } // <--- Đã bổ sung dấu đóng ngoặc nhọn đúng chỗ ở đây
 
     document.getElementById('modalDeleteBtn').setAttribute('onclick', `deleteEmail(${mail.id}, true)`);
     document.getElementById('emailModal').classList.remove('hidden');
@@ -104,13 +102,12 @@ async function deleteEmail(id, isFromModal = false) {
     }
 }
 
-// Hàm chống XSS chuẩn cú pháp
 function escapeHtml(text) {
     if (!text) return '';
     return text
-        .replace(/&/g, "&")
-        .replace(/</g, "<")
-        .replace(/>/g, ">")
-        .replace(/"/g, """)
-        .replace(/'/g, "'");
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
 }
