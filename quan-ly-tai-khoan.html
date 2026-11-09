@@ -97,6 +97,34 @@
                     </div>
                 </div>
             </div>
+            <div class="lg:col-span-3 mt-8" id="adminLogsSection" style="display: none;">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+            <h3 class="font-bold text-gray-800 uppercase text-sm tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-clock-rotate-left text-indigo-600"></i> Nhật Ký Thao Tác Của Admin (Audit Log)
+            </h3>
+            <button onclick="loadAdminLogs()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5">
+                <i class="fa-solid fa-rotate"></i> Làm Mới Log
+            </button>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead class="bg-white text-xs uppercase text-gray-500 border-b">
+                    <tr>
+                        <th class="px-6 py-4 font-bold">Quản trị viên</th>
+                        <th class="px-6 py-4 font-bold">Hành động</th>
+                        <th class="px-6 py-4 font-bold">Chi tiết</th>
+                        <th class="px-6 py-4 font-bold">Địa chỉ IP</th>
+                        <th class="px-6 py-4 font-bold text-right">Thời gian</th>
+                    </tr>
+                </thead>
+                <tbody id="adminLogsTableBody" class="text-sm divide-y divide-gray-50 text-gray-700">
+                    <tr><td colspan="5" class="text-center py-6 text-gray-400 italic">Đang tải nhật ký...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
         </div>
     </main>
 
