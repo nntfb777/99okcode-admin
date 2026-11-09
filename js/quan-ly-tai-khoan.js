@@ -20,7 +20,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const usersection = document.getElementById('superAdminSection');
         if (usersection) {
             usersection.style.display = 'block';
-            loadAdminList(); // Tải danh sách admin nếu có quyền
+            loadAdminList();
+        }
+
+        const logsSection = document.getElementById('adminLogsSection');
+        if (logsSection && currentRole === 'superadmin') {
+            logsSection.style.display = 'block';
+            loadAdminLogs(); // Tự động load log khi vào trang
         }
     }
 
@@ -62,11 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-    const logsSection = document.getElementById('adminLogsSection');
-    if (logsSection && userRole === 'superadmin') {
-        logsSection.style.display = 'block';
-        loadAdminLogs(); // Tự động load log khi vào trang
-        }
+
     }
 
     // --- CHỨC NĂNG 2: TẢI DANH SÁCH ADMIN (Dành cho Super Admin) ---
