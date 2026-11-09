@@ -61,6 +61,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 btnChangeMyPass.innerText = "CẬP NHẬT MẬT KHẨU";
             }
         });
+
+    const logsSection = document.getElementById('adminLogsSection');
+    if (logsSection && userRole === 'superadmin') {
+        logsSection.style.display = 'block';
+        loadAdminLogs(); // Tự động load log khi vào trang
+        }
     }
 
     // --- CHỨC NĂNG 2: TẢI DANH SÁCH ADMIN (Dành cho Super Admin) ---
@@ -177,4 +183,39 @@ document.addEventListener('DOMContentLoaded', function() {
             alert("Lỗi khi reset mật khẩu!");
         }
     };
+    async function loadAdminLogs() {
+    const tableBody = document.getElementById('adminLogsTableBody');
+    if (!tableBody) return;
+    const token = localStorage.getItem('admin_token');
+
+    try {
+        const res = await fetch(`${API_URL}/api/admin/admin-logs`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'X-Site-ID': Auth.getActiveSite()
+            }
+        });
+        const result = await res.json();
+
+        if (result.success && result.logs) {
+            if (result.logs.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-gray-400 italic">Chưa có lịch sử thao tác nào</td></tr>`;
+                return;
+            }
+
+            tableBody.innerHTML = result.logs.map(log => `
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-6 py-4 font-bold text-indigo-600">${log.username}</td>
+                    <td class="px-6 py-4 font-semibold text-gray-800">${log.action}</td>
+                    <td class="px-6 py-4 text-gray-600 font-mono text-xs">${log.details || '---'}</td>
+                    <td class="px-6 py-4 text-gray-500 font-mono text-xs">${log.ip || 'Unknown'}</td>
+                    <td class="px-6 py-4 text-right text-gray-400 text-xs italic">${log.created_at}</td>
+                </tr>
+            `).join('');
+        }
+    } catch (err) {
+        console.error("Lỗi tải nhật ký:", err);
+        tableBody.innerHTML = `<tr><td colspan="5" class="text-center py-6 text-red-400 italic">Không thể kết nối tải dữ liệu log</td></tr>`;
+    }
+}
 });
