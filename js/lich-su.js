@@ -106,12 +106,12 @@ async function deleteHistoryBulk() {
 // HÀM MỚI: Định nghĩa nút dọn sạch lịch sử
 async function clearAllHistory() {
     if (!confirm("Sếp có chắc muốn XÓA SẠCH toàn bộ lịch sử không?")) return;
-
+    const currentSite = Auth.getActiveSite();
     const token = localStorage.getItem('admin_token');
     try {
         const res = await fetch(`${API_URL}/api/history/clear-all`, {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}`, 'X-Site-ID': Auth.getActiveSite() }
+            headers: { 'Authorization': `Bearer ${token}`, 'X-Site-ID': currentSite }
         });
         const result = await res.json();
         if (result.success) {
