@@ -114,7 +114,7 @@ async function saveMasterUrls(e) {
     });
 
     try {
-        const res = await fetch(`${API_URL}/api/admin/links/save-batch`, { // Gọi endpoint batch mới
+        const res = await fetch(`${API_URL}/api/admin/links/save`, { // Gọi endpoint batch mới
             method: 'POST',
             headers: getAuthHeaders(),
             body: JSON.stringify({ site_id: siteId, category: 'ping_link', items: items })
