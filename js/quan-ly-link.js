@@ -91,54 +91,44 @@ async function saveSystemLinks(e) {
     }
 }
 
-// 3. LƯU DANH SÁCH MASTER URLS (Thông minh theo ID từng dòng)
 async function saveMasterUrls(e) {
     if (e) e.preventDefault();
     const siteId = (typeof Auth !== 'undefined' && Auth.getActiveSite) ? Auth.getActiveSite() : '99ok';
     const rawText = document.getElementById('masterUrlsInput').value;
     const urlList = rawText.split('\n').map(u => u.trim()).filter(u => u.length > 0);
 
+    const existingMasterLinks = globalLinksData.filter(i => i.category === 'ping_link');
+
+    // Đóng gói toàn bộ danh sách vào mảng items gửi đi
+    const items = urlList.map((url, i) => {
+        const matchedOld = existingMasterLinks[i];
+        return {
+            id: matchedOld ? matchedOld.id : undefined,
+            category: 'ping_link',
+            key_name: matchedOld ? matchedOld.key_name : `master_url_${Date.now()}_${i}`,
+            title: `Master URL ${i + 1}`,
+            value: url,
+            sort_order: i + 1,
+            is_active: 1
+        };
+    });
+
     try {
-        const existingMasterLinks = globalLinksData.filter(i => i.category === 'ping_link');
-
-        // Xóa các dòng bị bớt đi so với cũ
-        if (existingMasterLinks.length > urlList.length) {
-            for (let i = urlList.length; i < existingMasterLinks.length; i++) {
-                const keyToDelete = existingMasterLinks[i].key_name;
-                if (keyToDelete) {
-                    await fetch(`${API_URL}/api/admin/links/delete?key_name=${keyToDelete}&site_id=${siteId}`, {
-                        method: 'DELETE',
-                        headers: getAuthHeaders()
-                    });
-                }
-            }
+        const res = await fetch(`${API_URL}/api/admin/links/save-batch`, { // Gọi endpoint batch mới
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ site_id: siteId, category: 'ping_link', items: items })
+        });
+        const result = await res.json();
+        
+        if (result.success) {
+            alert(result.message || `Cập nhật thành công ${urlList.length} Master URLs!`);
+            loadAllLinks();
+        } else {
+            alert(result.error || 'Lỗi lưu danh sách Master URLs');
         }
-
-        // Cập nhật hoặc Thêm mới từng dòng dựa vào ID có sẵn
-        for (let i = 0; i < urlList.length; i++) {
-            const matchedOld = existingMasterLinks[i]; // Dòng cũ ở vị trí tương ứng
-            const payload = {
-                id: matchedOld ? matchedOld.id : undefined, // 👈 Giữ đúng ID cũ nếu dòng đó đã tồn tại
-                site_id: siteId,
-                category: 'ping_link',
-                key_name: matchedOld ? matchedOld.key_name : `master_url_${Date.now()}_${i}`,
-                title: `Master URL ${i + 1}`,
-                value: urlList[i],
-                sort_order: i + 1,
-                is_active: 1
-            };
-
-            await fetch(`${API_URL}/api/admin/links/save`, {
-                method: 'POST',
-                headers: getAuthHeaders(),
-                body: JSON.stringify(payload)
-            });
-        }
-
-        alert(`Cập nhật thành công ${urlList.length} Master URLs!`);
-        loadAllLinks();
     } catch (err) {
-        alert('Lỗi lưu danh sách Master URLs: ' + err.message);
+        alert('Lỗi kết nối khi lưu danh sách Master URLs: ' + err.message);
     }
 }
 
@@ -204,53 +194,44 @@ function fillBannerLinks(data) {
     }
 }
 
+// 5. LƯU BANNER CAROUSEL (Gửi theo mảng Batch duy nhất)
 async function saveBanners(e) {
     if (e) e.preventDefault();
     const siteId = (typeof Auth !== 'undefined' && Auth.getActiveSite) ? Auth.getActiveSite() : '99ok';
     const rawText = document.getElementById('bannerUrlsInput').value;
     const bannerList = rawText.split('\n').map(u => u.trim()).filter(u => u.length > 0);
 
+    const existingBanners = globalLinksData.filter(i => i.category === 'banner_image');
+
+    const items = bannerList.map((url, i) => {
+        const matchedOld = existingBanners[i];
+        return {
+            id: matchedOld ? matchedOld.id : undefined,
+            category: 'banner_image',
+            key_name: matchedOld ? matchedOld.key_name : `banner_slide_${Date.now()}_${i}`,
+            title: `Banner Slide ${i + 1}`,
+            value: url,
+            sort_order: i + 1,
+            is_active: 1
+        };
+    });
+
     try {
-        const existingBanners = globalLinksData.filter(i => i.category === 'banner_image');
+        const res = await fetch(`${API_URL}/api/admin/links/save-batch`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ site_id: siteId, category: 'banner_image', items: items })
+        });
+        const result = await res.json();
 
-        // Xóa bớt nếu số lượng dòng giảm
-        if (existingBanners.length > bannerList.length) {
-            for (let i = bannerList.length; i < existingBanners.length; i++) {
-                const keyToDelete = existingBanners[i].key_name;
-                if (keyToDelete) {
-                    await fetch(`${API_URL}/api/admin/links/delete?key_name=${keyToDelete}&site_id=${siteId}`, {
-                        method: 'DELETE',
-                        headers: getAuthHeaders()
-                    });
-                }
-            }
+        if (result.success) {
+            alert(result.message || `Cập nhật thành công ${bannerList.length} ảnh Banner!`);
+            loadAllLinks();
+        } else {
+            alert(result.error || 'Lỗi lưu danh sách Banner');
         }
-
-        // Cập nhật hoặc Thêm mới gắn kèm ID
-        for (let i = 0; i < bannerList.length; i++) {
-            const matchedOld = existingBanners[i];
-            const payload = {
-                id: matchedOld ? matchedOld.id : undefined, // 👈 Giữ chuẩn ID từng dòng đã có trong DB
-                site_id: siteId,
-                category: 'banner_image',
-                key_name: matchedOld ? matchedOld.key_name : `banner_slide_${Date.now()}_${i}`,
-                title: `Banner Slide ${i + 1}`,
-                value: bannerList[i],
-                sort_order: i + 1,
-                is_active: 1
-            };
-
-            await fetch(`${API_URL}/api/admin/links/save`, {
-                method: 'POST',
-                headers: getAuthHeaders(),
-                body: JSON.stringify(payload)
-            });
-        }
-
-        alert(`Cập nhật thành công ${bannerList.length} ảnh Banner Carousel!`);
-        loadAllLinks();
     } catch (err) {
-        alert('Lỗi lưu danh sách Banner: ' + err.message);
+        alert('Lỗi kết nối khi lưu danh sách Banner: ' + err.message);
     }
 }
 
