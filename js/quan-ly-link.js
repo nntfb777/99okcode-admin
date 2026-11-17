@@ -217,7 +217,7 @@ async function saveBanners(e) {
     });
 
     try {
-        const res = await fetch(`${API_URL}/api/admin/links/save-batch`, {
+        const res = await fetch(`${API_URL}/api/admin/links/save`, {
             method: 'POST',
             headers: getAuthHeaders(),
             body: JSON.stringify({ site_id: siteId, category: 'banner_image', items: items })
