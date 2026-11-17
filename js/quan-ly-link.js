@@ -28,18 +28,17 @@ async function loadAllLinks() {
         
         globalLinksData = result.data || [];
 
-        // Điền link hệ thống cố định (Kiểm tra phần tử tồn tại trước khi gán value)
-        const kefu = globalLinksData.find(i => i.key_name === 'kefuUrl');
-        const apk = globalLinksData.find(i => i.key_name === 'apkAppUrl');
-        const pc = globalLinksData.find(i => i.key_name === 'pcUrl');
-        
-        const kefuEl = document.getElementById('kefuUrl');
-        const apkEl = document.getElementById('apkAppUrl');
-        const pcEl = document.getElementById('pcUrl');
-
-        if (kefu && kefuEl) kefuEl.value = kefu.value;
-        if (apk && apkEl) apkEl.value = apk.value;
-        if (pc && pcEl) pcEl.value = pc.value;
+        // Điền link hệ thống cố định
+        const systemFields = [
+            { key: 'kefuUrl', id: 'kefuUrl' },
+            { key: 'apkAppUrl', id: 'apkAppUrl' },
+            { key: 'pcUrl', id: 'pcUrl' }
+        ];
+        systemFields.forEach(field => {
+            const item = globalLinksData.find(i => i.key_name === field.key);
+            const el = document.getElementById(field.id);
+            if (item && el) el.value = item.value;
+        });
 
         // Điền Master URLs ra bảng
         renderMasterTable(globalLinksData.filter(i => i.category === 'ping_link'));
@@ -50,11 +49,12 @@ async function loadAllLinks() {
         // Điền Banner Carousel ra bảng
         renderBannerTable(globalLinksData.filter(i => i.category === 'banner_image'));
     } catch (err) {
+        console.error(err);
         alert('Lỗi nạp danh sách link: ' + err.message);
     }
 }
 
-// ==================== MASTER URLS TABLE ====================
+// ==================== QUẢN LÝ MASTER URLS (DẠNG BẢNG) ====================
 function renderMasterTable(masterLinks) {
     const tbody = document.getElementById('masterUrlsTbody');
     if (!tbody) return;
@@ -79,7 +79,7 @@ function addMasterRow(keyName = '', value = '') {
     updateCount('masterUrlsTbody', 'masterCount', 'links');
 }
 
-// ==================== BANNERS TABLE ====================
+// ==================== QUẢN LÝ BANNERS (DẠNG BẢNG) ====================
 function renderBannerTable(banners) {
     const tbody = document.getElementById('bannerUrlsTbody');
     if (!tbody) return;
@@ -104,20 +104,22 @@ function addBannerRow(keyName = '', value = '') {
     updateCount('bannerUrlsTbody', 'bannerCount', 'ảnh');
 }
 
-// Hàm chung render dòng
+// Hàm chung render dòng vào bảng
 function appendRowToTable(tbodyId, keyName, value, index, inputClass, keyClass, placeholder) {
     const tbody = document.getElementById(tbodyId);
     if (!tbody) return;
     const tr = document.createElement('tr');
     tr.setAttribute('data-key', keyName);
     tr.innerHTML = `
-        <td class="text-center fw-bold row-index">${index}</td>
-        <td>
-            <input type="text" class="form-control ${inputClass}" value="${value}" placeholder="${placeholder}">
+        <td class="text-center fw-bold row-index py-2">${index}</td>
+        <td class="p-2">
+            <input type="text" class="w-full px-3 py-1.5 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none ${inputClass}" value="${value}" placeholder="${placeholder}">
             <input type="hidden" class="${keyClass}" value="${keyName}">
         </td>
-        <td class="text-center">
-            <button type="button" class="btn btn-sm btn-danger" onclick="removeTableRow(this, '${tbodyId}')">🗑️ Xóa</button>
+        <td class="text-center p-2">
+            <button type="button" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-xs transition" onclick="removeTableRow(this, '${tbodyId}')">
+                <i class="fa-solid fa-trash"></i> Xóa
+            </button>
         </td>
     `;
     tbody.appendChild(tr);
@@ -128,6 +130,7 @@ function removeTableRow(btn, tbodyId) {
     const keyInput = row.querySelector('.master-key') || row.querySelector('.banner-key');
     const key = keyInput ? keyInput.value : '';
     
+    // Nếu dòng đã tồn tại trong DB thì gọi API xóa ngay lập tức
     if (key && !key.includes('Date.now()')) {
         const siteId = (typeof Auth !== 'undefined' && Auth.getActiveSite) ? Auth.getActiveSite() : '99ok';
         fetch(`${API_URL}/api/admin/links/delete?key_name=${key}&site_id=${siteId}`, {
@@ -156,8 +159,9 @@ function updateCount(tbodyId, countId, unit) {
     if (countEl) countEl.innerText = `Tổng số: ${count} ${unit}`;
 }
 
-// ==================== LƯU DỮ LIỆU ====================
+// ==================== CÁC HÀM LƯU DỮ LIỆU ====================
 
+// 2. Lưu Link Hệ Thống Cố Định
 async function saveSystemLinks(e) {
     if (e) e.preventDefault();
     const siteId = (typeof Auth !== 'undefined' && Auth.getActiveSite) ? Auth.getActiveSite() : '99ok';
@@ -184,6 +188,7 @@ async function saveSystemLinks(e) {
     }
 }
 
+// 3. Lưu Master URLs từ bảng (Gửi độc lập từng dòng, cực kỳ sạch log)
 async function saveMasterUrlsTable(e) {
     if (e) e.preventDefault();
     const siteId = (typeof Auth !== 'undefined' && Auth.getActiveSite) ? Auth.getActiveSite() : '99ok';
@@ -221,6 +226,7 @@ async function saveMasterUrlsTable(e) {
     }
 }
 
+// 4. Lưu Link Mạng Xã Hội
 function fillSocialLinks(data) {
     const fields = ['facebookUrl', 'telegramUrl', 'dailyTelegramUrl', 'agentLoginUrl', 'giftcodeUrl'];
     fields.forEach(key => {
@@ -260,6 +266,7 @@ async function saveSocialLinks(e) {
     }
 }
 
+// 5. Lưu Banner Carousel từ bảng
 async function saveBannersTable(e) {
     if (e) e.preventDefault();
     const siteId = (typeof Auth !== 'undefined' && Auth.getActiveSite) ? Auth.getActiveSite() : '99ok';
