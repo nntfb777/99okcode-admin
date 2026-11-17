@@ -28,13 +28,18 @@ async function loadAllLinks() {
         
         globalLinksData = result.data || [];
 
-        // Điền link hệ thống cố định
+        // Điền link hệ thống cố định (Kiểm tra phần tử tồn tại trước khi gán value)
         const kefu = globalLinksData.find(i => i.key_name === 'kefuUrl');
         const apk = globalLinksData.find(i => i.key_name === 'apkAppUrl');
         const pc = globalLinksData.find(i => i.key_name === 'pcUrl');
-        if (kefu) document.getElementById('kefuUrl').value = kefu.value;
-        if (apk) document.getElementById('apkAppUrl').value = apk.value;
-        if (pc) document.getElementById('pcUrl').value = pc.value;
+        
+        const kefuEl = document.getElementById('kefuUrl');
+        const apkEl = document.getElementById('apkAppUrl');
+        const pcEl = document.getElementById('pcUrl');
+
+        if (kefu && kefuEl) kefuEl.value = kefu.value;
+        if (apk && apkEl) apkEl.value = apk.value;
+        if (pc && pcEl) pcEl.value = pc.value;
 
         // Điền Master URLs ra bảng
         renderMasterTable(globalLinksData.filter(i => i.category === 'ping_link'));
@@ -42,14 +47,14 @@ async function loadAllLinks() {
         // Điền Social Links
         fillSocialLinks(globalLinksData);
 
-        // Điền Banner Carousel ra bảng (Áp dụng luôn chuẩn bảng cho Banner để sạch log tuyệt đối)
+        // Điền Banner Carousel ra bảng
         renderBannerTable(globalLinksData.filter(i => i.category === 'banner_image'));
     } catch (err) {
         alert('Lỗi nạp danh sách link: ' + err.message);
     }
 }
 
-// ==================== QUẢN LÝ MASTER URLS (DẠNG BẢNG TỪNG DÒNG) ====================
+// ==================== MASTER URLS TABLE ====================
 function renderMasterTable(masterLinks) {
     const tbody = document.getElementById('masterUrlsTbody');
     if (!tbody) return;
@@ -67,12 +72,14 @@ function renderMasterTable(masterLinks) {
 }
 
 function addMasterRow(keyName = '', value = '') {
+    const tbody = document.getElementById('masterUrlsTbody');
+    if (!tbody) return;
     const generatedKey = keyName || `master_url_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-    appendRowToTable('masterUrlsTbody', generatedKey, value, document.getElementById('masterUrlsTbody').rows.length + 1, 'master-input', 'master-key', 'Nhập https://...');
+    appendRowToTable('masterUrlsTbody', generatedKey, value, tbody.rows.length + 1, 'master-input', 'master-key', 'Nhập https://...');
     updateCount('masterUrlsTbody', 'masterCount', 'links');
 }
 
-// ==================== QUẢN LÝ BANNERS (DẠNG BẢNG TỪNG DÒNG) ====================
+// ==================== BANNERS TABLE ====================
 function renderBannerTable(banners) {
     const tbody = document.getElementById('bannerUrlsTbody');
     if (!tbody) return;
@@ -90,12 +97,14 @@ function renderBannerTable(banners) {
 }
 
 function addBannerRow(keyName = '', value = '') {
+    const tbody = document.getElementById('bannerUrlsTbody');
+    if (!tbody) return;
     const generatedKey = keyName || `banner_slide_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-    appendRowToTable('bannerUrlsTbody', generatedKey, value, document.getElementById('bannerUrlsTbody').rows.length + 1, 'banner-input', 'banner-key', 'Nhập link ảnh banner...');
+    appendRowToTable('bannerUrlsTbody', generatedKey, value, tbody.rows.length + 1, 'banner-input', 'banner-key', 'Nhập link ảnh banner...');
     updateCount('bannerUrlsTbody', 'bannerCount', 'ảnh');
 }
 
-// Hàm chung render dòng vào bảng
+// Hàm chung render dòng
 function appendRowToTable(tbodyId, keyName, value, index, inputClass, keyClass, placeholder) {
     const tbody = document.getElementById(tbodyId);
     if (!tbody) return;
@@ -114,13 +123,12 @@ function appendRowToTable(tbodyId, keyName, value, index, inputClass, keyClass, 
     tbody.appendChild(tr);
 }
 
-// Xóa 1 dòng trên bảng (Tự gọi DELETE ngay lập tức nếu đã có trong DB)
 function removeTableRow(btn, tbodyId) {
     const row = btn.closest('tr');
     const keyInput = row.querySelector('.master-key') || row.querySelector('.banner-key');
     const key = keyInput ? keyInput.value : '';
     
-    if (key && !key.includes('Date.now()') && !key.includes('math')) {
+    if (key && !key.includes('Date.now()')) {
         const siteId = (typeof Auth !== 'undefined' && Auth.getActiveSite) ? Auth.getActiveSite() : '99ok';
         fetch(`${API_URL}/api/admin/links/delete?key_name=${key}&site_id=${siteId}`, {
             method: 'DELETE',
@@ -148,20 +156,20 @@ function updateCount(tbodyId, countId, unit) {
     if (countEl) countEl.innerText = `Tổng số: ${count} ${unit}`;
 }
 
-// ==================== LƯU DỮ LIỆU TỪNG PHẦN ====================
+// ==================== LƯU DỮ LIỆU ====================
 
-// 2. LƯU LINK HỆ THỐNG CỐ ĐỊNH
 async function saveSystemLinks(e) {
     if (e) e.preventDefault();
     const siteId = (typeof Auth !== 'undefined' && Auth.getActiveSite) ? Auth.getActiveSite() : '99ok';
     const systemItems = [
-        { category: 'system_link', key_name: 'kefuUrl', title: 'Link CSKH', value: document.getElementById('kefuUrl').value.trim() },
-        { category: 'system_link', key_name: 'apkAppUrl', title: 'Link Tải App APK', value: document.getElementById('apkAppUrl').value.trim() },
-        { category: 'system_link', key_name: 'pcUrl', title: 'Link Tải PC', value: document.getElementById('pcUrl').value.trim() }
+        { category: 'system_link', key_name: 'kefuUrl', title: 'Link CSKH', value: document.getElementById('kefuUrl')?.value.trim() || '' },
+        { category: 'system_link', key_name: 'apkAppUrl', title: 'Link Tải App APK', value: document.getElementById('apkAppUrl')?.value.trim() || '' },
+        { category: 'system_link', key_name: 'pcUrl', title: 'Link Tải PC', value: document.getElementById('pcUrl')?.value.trim() || '' }
     ];
 
     try {
         for (const item of systemItems) {
+            if (!item.value) continue;
             const payload = { ...item, site_id: siteId, is_active: 1 };
             await fetch(`${API_URL}/api/admin/links/save`, {
                 method: 'POST',
@@ -176,7 +184,6 @@ async function saveSystemLinks(e) {
     }
 }
 
-// 3. LƯU MASTER URLS TỪ BẢNG (Gửi độc lập từng dòng cực kỳ sạch log)
 async function saveMasterUrlsTable(e) {
     if (e) e.preventDefault();
     const siteId = (typeof Auth !== 'undefined' && Auth.getActiveSite) ? Auth.getActiveSite() : '99ok';
@@ -214,13 +221,13 @@ async function saveMasterUrlsTable(e) {
     }
 }
 
-// 4. LƯU MẠNG XÃ HỘI
 function fillSocialLinks(data) {
     const fields = ['facebookUrl', 'telegramUrl', 'dailyTelegramUrl', 'agentLoginUrl', 'giftcodeUrl'];
     fields.forEach(key => {
         const item = data.find(i => i.key_name === key);
-        if (item && document.getElementById(key)) {
-            document.getElementById(key).value = item.value;
+        const el = document.getElementById(key);
+        if (item && el) {
+            el.value = item.value;
         }
     });
 }
@@ -229,11 +236,11 @@ async function saveSocialLinks(e) {
     if (e) e.preventDefault();
     const siteId = (typeof Auth !== 'undefined' && Auth.getActiveSite) ? Auth.getActiveSite() : '99ok';
     const socialItems = [
-        { category: 'social_link', key_name: 'facebookUrl', title: 'Fanpage Facebook', value: document.getElementById('facebookUrl').value.trim() },
-        { category: 'social_link', key_name: 'telegramUrl', title: 'Kênh Telegram', value: document.getElementById('telegramUrl').value.trim() },
-        { category: 'social_link', key_name: 'dailyTelegramUrl', title: 'Telegram Đại Lý', value: document.getElementById('dailyTelegramUrl').value.trim() },
-        { category: 'social_link', key_name: 'agentLoginUrl', title: 'Đăng Nhập Đại Lý', value: document.getElementById('agentLoginUrl').value.trim() },
-        { category: 'social_link', key_name: 'giftcodeUrl', title: 'Link Nhập Giftcode', value: document.getElementById('giftcodeUrl').value.trim() }
+        { category: 'social_link', key_name: 'facebookUrl', title: 'Fanpage Facebook', value: document.getElementById('facebookUrl')?.value.trim() || '' },
+        { category: 'social_link', key_name: 'telegramUrl', title: 'Kênh Telegram', value: document.getElementById('telegramUrl')?.value.trim() || '' },
+        { category: 'social_link', key_name: 'dailyTelegramUrl', title: 'Telegram Đại Lý', value: document.getElementById('dailyTelegramUrl')?.value.trim() || '' },
+        { category: 'social_link', key_name: 'agentLoginUrl', title: 'Đăng Nhập Đại Lý', value: document.getElementById('agentLoginUrl')?.value.trim() || '' },
+        { category: 'social_link', key_name: 'giftcodeUrl', title: 'Link Nhập Giftcode', value: document.getElementById('giftcodeUrl')?.value.trim() || '' }
     ];
 
     try {
@@ -253,7 +260,6 @@ async function saveSocialLinks(e) {
     }
 }
 
-// 5. LƯU BANNER CAROUSEL TỪ BẢNG
 async function saveBannersTable(e) {
     if (e) e.preventDefault();
     const siteId = (typeof Auth !== 'undefined' && Auth.getActiveSite) ? Auth.getActiveSite() : '99ok';
