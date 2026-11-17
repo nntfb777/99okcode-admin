@@ -97,38 +97,50 @@ async function saveMasterUrls(e) {
     const rawText = document.getElementById('masterUrlsInput').value;
     const urlList = rawText.split('\n').map(u => u.trim()).filter(u => u.length > 0);
 
-    const existingMasterLinks = globalLinksData.filter(i => i.category === 'ping_link');
-
-    // Đóng gói toàn bộ danh sách vào mảng items gửi đi
-    const items = urlList.map((url, i) => {
-        const matchedOld = existingMasterLinks[i];
-        return {
-            id: matchedOld ? matchedOld.id : undefined,
-            category: 'ping_link',
-            key_name: matchedOld ? matchedOld.key_name : `master_url_${Date.now()}_${i}`,
-            title: `Master URL ${i + 1}`,
-            value: url,
-            sort_order: i + 1,
-            is_active: 1
-        };
-    });
-
     try {
-        const res = await fetch(`${API_URL}/api/admin/links/save`, { // Gọi endpoint batch mới
-            method: 'POST',
-            headers: getAuthHeaders(),
-            body: JSON.stringify({ site_id: siteId, category: 'ping_link', items: items })
-        });
-        const result = await res.json();
+        // Lấy danh sách master link hiện có trong DB
+        const existingMasterLinks = globalLinksData.filter(i => i.category === 'ping_link');
         
-        if (result.success) {
-            alert(result.message || `Cập nhật thành công ${urlList.length} Master URLs!`);
-            loadAllLinks();
-        } else {
-            alert(result.error || 'Lỗi lưu danh sách Master URLs');
+        // Tạo tập hợp các key mới tương ứng với số lượng dòng hiện tại trên màn hình
+        const activeKeys = new Set();
+        
+        for (let i = 0; i < urlList.length; i++) {
+            // Định danh cố định cho từng dòng: master_url_1, master_url_2, master_url_3...
+            // Hoặc có thể dùng ID cũ nếu dòng đó đã tồn tại để giữ nguyên vị trí
+            const targetKey = existingMasterLinks[i] ? existingMasterLinks[i].key_name : `master_url_${Date.now()}_${i}`;
+            activeKeys.add(targetKey);
+
+            const payload = {
+                site_id: siteId,
+                category: 'ping_link',
+                key_name: targetKey,
+                title: `Master URL ${i + 1}`,
+                value: urlList[i],
+                sort_order: i + 1,
+                is_active: 1
+            };
+
+            await fetch(`${API_URL}/api/admin/links/save`, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(payload)
+            });
         }
+
+        // Tự động xóa các key thừa nếu số lượng dòng giảm đi
+        for (const oldItem of existingMasterLinks) {
+            if (!activeKeys.has(oldItem.key_name)) {
+                await fetch(`${API_URL}/api/admin/links/delete?key_name=${oldItem.key_name}&site_id=${siteId}`, {
+                    method: 'DELETE',
+                    headers: getAuthHeaders()
+                });
+            }
+        }
+
+        alert(`Đã cập nhật danh sách Master URLs thành công!`);
+        loadAllLinks();
     } catch (err) {
-        alert('Lỗi kết nối khi lưu danh sách Master URLs: ' + err.message);
+        alert('Lỗi lưu danh sách: ' + err.message);
     }
 }
 
